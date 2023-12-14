@@ -15,23 +15,29 @@ def port_scan(target_ip, start_port, end_port, port_queue, results):
         sys.stdout.write(f"\rScanning port {port} {next(animation)}")
         sys.stdout.flush()
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((target_ip, port))
-        if result == 0:
-            results[port] = "Open"
-        sock.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)
+            result = sock.connect_ex((target_ip, port))
+            if result == 0:
+                results[port] = "Open"
         port_queue.task_done()
 
     sys.stdout.write('\n')
 
 # Function to scan a single IP
 def single_ip_scan():
-    target_ip = input("Enter the IP address to scan: ")
-    start_port = int(input("Enter the starting port number: "))
-    end_port = int(input("Enter the ending port number: "))
+    print("=== Single IP Scan ===")
+    try:
+        target_ip = input("Enter the IP address to scan: ")
+        ipaddress.IPv4Address(target_ip)
+        start_port = int(input("Enter the starting port number: "))
+        end_port = int(input("Enter the ending port number: "))
+    except ValueError:
+        print("Invalid input. Please enter valid IP address and port numbers.")
+        return
+
     results = {}  # Initialize results dictionary
-    scan(target_ip, start_port, end_port, results)  # Pass results to the scan function
+    scan(target_ip, start_port, end_port, results)
 
     # Display open ports for the scanned IP
     print(f"\nOpen ports on {target_ip}:")
@@ -41,10 +47,17 @@ def single_ip_scan():
 
 # Function to scan a range of IPs
 def ip_range_scan():
-    start_ip = input("Enter the starting IP address: ")
-    end_ip = input("Enter the ending IP address: ")
-    start_port = int(input("Enter the starting port number: "))
-    end_port = int(input("Enter the ending port number: "))
+    print("=== IP Range Scan ===")
+    try:
+        start_ip = input("Enter the starting IP address: ")
+        end_ip = input("Enter the ending IP address: ")
+        ipaddress.IPv4Address(start_ip)
+        ipaddress.IPv4Address(end_ip)
+        start_port = int(input("Enter the starting port number: "))
+        end_port = int(input("Enter the ending port number: "))
+    except ValueError:
+        print("Invalid input. Please enter valid IP addresses and port numbers.")
+        return
     
     ip_range = ipaddress.summarize_address_range(ipaddress.IPv4Address(start_ip), ipaddress.IPv4Address(end_ip))
     all_results = {}
@@ -89,14 +102,21 @@ def scan(target_ip, start_port, end_port, results):
         thread.join()
 
 # Main menu for selecting scan type
-print("Select the scan type:")
-print("1. Single IP")
-print("2. IP Range")
-scan_type = input("Enter your choice (1 or 2): ")
+while True:
+    print("\n=== Welcome to Port Scanner ===")
+    print("Select the scan type:")
+    print("1. Single IP")
+    print("2. IP Range")
+    print("0. Exit")
 
-if scan_type == "1":
-    single_ip_scan()
-elif scan_type == "2":
-    ip_range_scan()
-else:
-    print("Invalid choice. Please enter 1 or 2.")
+    scan_type = input("Enter your choice (0, 1, or 2): ")
+
+    if scan_type == "1":
+        single_ip_scan()
+    elif scan_type == "2":
+        ip_range_scan()
+    elif scan_type == "0":
+        print("Exiting...")
+        break
+    else:
+        print("Invalid choice. Please enter 0, 1, or 2.")
