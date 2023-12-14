@@ -46,7 +46,8 @@ for _ in range(num_threads):
 for thread in threads:
     thread.join()
 
-# Print open ports
+# Sort and print open ports
+sorted_ports = sorted(results.items(), key=lambda x: x[0])
 print(f"Open ports on {target_ip}:")
-for port, status in results.items():
+for port, status in sorted_ports:
     print(f"Port {port}: {status}")
