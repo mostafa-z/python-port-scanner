@@ -30,7 +30,14 @@ def single_ip_scan():
     target_ip = input("Enter the IP address to scan: ")
     start_port = int(input("Enter the starting port number: "))
     end_port = int(input("Enter the ending port number: "))
-    scan(target_ip, start_port, end_port)
+    results = {}  # Initialize results dictionary
+    scan(target_ip, start_port, end_port, results)  # Pass results to the scan function
+
+    # Display open ports for the scanned IP
+    print(f"\nOpen ports on {target_ip}:")
+    for port, status in sorted(results.items()):
+        if status == "Open":
+            print(f"Port {port}: {status}")
 
 # Function to scan a range of IPs
 def ip_range_scan():
