@@ -50,14 +50,52 @@ def single_ip_scan():
         if status == "Open":
             print(f"Port {port}: {status}")
 
+# Function to calculate suggested end IP
+def calculate_end_ip(start_ip, subnet_mask):
+    ip_parts = start_ip.split('.')
+    subnet_mask_parts = subnet_mask.split('.')
+
+    # Convert IP and subnet mask parts to integers
+    ip_int = [int(part) for part in ip_parts]
+    mask_int = [int(part) for part in subnet_mask_parts]
+
+    # Perform bitwise operation to find the suggested end IP
+    end_ip_int = [ip_int[i] | (~mask_int[i] & 0xff) for i in range(4)]
+
+    return '.'.join(map(str, end_ip_int))
+
+# Function to suggest subnet mask based on IP class
+def suggest_subnet_mask(ip_parts):
+    first_octet = int(ip_parts[0])
+
+    if 1 <= first_octet <= 126:
+        return '255.0.0.0'  # Class A
+    elif 128 <= first_octet <= 191:
+        return '255.255.0.0'  # Class B
+    elif 192 <= first_octet <= 223:
+        return '255.255.255.0'  # Class C
+
+    return '255.255.255.0'  # Default to Class C subnet mask
+
 # Function to scan a range of IPs
 def ip_range_scan():
     print("=== IP Range Scan ===")
     try:
         start_ip = input("Enter the starting IP address: ")
-        end_ip = input("Enter the ending IP address: ")
-        ipaddress.IPv4Address(start_ip)
-        ipaddress.IPv4Address(end_ip)
+        ip_parts = start_ip.split('.')
+
+        subnet_mask = suggest_subnet_mask(ip_parts)
+        print(f"Suggested subnet mask: {subnet_mask}")
+
+        suggested_end_ip = calculate_end_ip(start_ip, subnet_mask)
+        print(f"Suggested ending IP address: {suggested_end_ip}")
+
+        end_ip = input("Enter the ending IP address (press Enter to use suggested): ")
+        if not end_ip:
+            end_ip = suggested_end_ip
+        else:
+            ipaddress.IPv4Address(end_ip)
+
         start_port = int(input("Enter the starting port number: "))
         end_port = int(input("Enter the ending port number: "))
 
@@ -66,7 +104,7 @@ def ip_range_scan():
             print("Ending port must be greater than or equal to the starting port.")
             return
     except ValueError:
-        print("Invalid input. Please enter valid IP addresses and port numbers.")
+        print("Invalid input. Please enter valid IP addresses, subnet mask, and port numbers.")
         return
     
     ip_range = ipaddress.summarize_address_range(ipaddress.IPv4Address(start_ip), ipaddress.IPv4Address(end_ip))
