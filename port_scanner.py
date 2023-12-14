@@ -40,15 +40,25 @@ def ip_range_scan():
     end_port = int(input("Enter the ending port number: "))
     
     ip_range = ipaddress.summarize_address_range(ipaddress.IPv4Address(start_ip), ipaddress.IPv4Address(end_ip))
+    all_results = {}
     for network in ip_range:
         for host in network:
-            scan(str(host), start_port, end_port)
+            results = {}
+            print(f"\nScanning ports for {host}...")
+            sys.stdout.flush()  # Ensure buffer is flushed before scan
+            scan(str(host), start_port, end_port, results)
+            all_results[host] = results
+
+    # Display all open ports for each scanned IP
+    for ip, results in all_results.items():
+        print(f"\nOpen ports on {ip}:")
+        for port, status in sorted(results.items()):
+            print(f"Port {port}: {status}")
 
 # Common scan function used for both single IP and IP range scan
-def scan(target_ip, start_port, end_port):
+def scan(target_ip, start_port, end_port, results):
     num_threads = 100  # Number of threads to use for scanning
     port_queue = queue.Queue()
-    results = {}
 
     # Create worker threads
     threads = []
@@ -70,12 +80,6 @@ def scan(target_ip, start_port, end_port):
 
     for thread in threads:
         thread.join()
-
-    # Sort and print open ports
-    sorted_ports = sorted(results.items(), key=lambda x: x[0])
-    print(f"Open ports on {target_ip}:")
-    for port, status in sorted_ports:
-        print(f"Port {port}: {status}")
 
 # Main menu for selecting scan type
 print("Select the scan type:")
