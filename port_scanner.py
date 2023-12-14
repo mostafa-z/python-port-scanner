@@ -31,10 +31,14 @@ def single_ip_scan():
         target_ip = input("Enter the IP address to scan: ")
         ipaddress.IPv4Address(target_ip)
         start_port = int(input("Enter the starting port number: "))
-        end_port = int(input("Enter the ending port number: "))
+        end_port_input = input("Enter the ending port number (press Enter to use starting port): ")
+        if end_port_input:
+            end_port = int(end_port_input)
+        else:
+            end_port = start_port
 
         # Validate port range
-        if end_port < start_port:
+        if end_port != start_port and end_port < start_port:
             print("Ending port must be greater than or equal to the starting port.")
             return
     except ValueError:
@@ -97,10 +101,14 @@ def ip_range_scan():
             ipaddress.IPv4Address(end_ip)
 
         start_port = int(input("Enter the starting port number: "))
-        end_port = int(input("Enter the ending port number: "))
+        end_port_input = input("Enter the ending port number (press Enter to use starting port): ")
+        if end_port_input:
+            end_port = int(end_port_input)
+        else:
+            end_port = start_port
 
         # Validate port range
-        if end_port < start_port:
+        if end_port != start_port and end_port < start_port:
             print("Ending port must be greater than or equal to the starting port.")
             return
     except ValueError:
