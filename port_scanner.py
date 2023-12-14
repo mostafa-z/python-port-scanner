@@ -1,12 +1,18 @@
 import socket
 import threading
 import queue
+import itertools
+import sys
 
 def port_scan(target_ip, start_port, end_port, results):
+    animation = itertools.cycle(['|', '/', '-', '\\'])
     while True:
         port = port_queue.get()
         if port is None:
             break
+
+        sys.stdout.write(f"\rScanning port {port} {next(animation)}")
+        sys.stdout.flush()
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
@@ -15,6 +21,8 @@ def port_scan(target_ip, start_port, end_port, results):
             results[port] = "Open"
         sock.close()
         port_queue.task_done()
+
+    sys.stdout.write('\n')
 
 # Get the target IP and port range from the user
 target_ip = input("Enter the IP address to scan: ")
